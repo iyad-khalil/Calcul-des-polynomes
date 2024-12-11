@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcul des Polynômes</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #007BFF;
+            font-size: 2.5em;
+        }
+        form {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        form h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        input, button {
+            margin: 5px 0;
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007BFF;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-left: 4px solid #007BFF;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .result ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        .result ul li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenue dans l'application Calcul des Polynômes</h1>
+    <div>
+        <p><strong>Que dois-je entrer dans "coefficients" ?</strong></p>
+        <p>Les coefficients sont les nombres qui définissent votre polynôme. Par exemple, pour le polynôme <code>x^3 - 6x^2 + 11x - 6</code>, entrez <code>1 -6 11 -6</code>.</p>
+    
+        <p><strong>Que fait la méthode de Newton ?</strong></p>
+        <p>La méthode de Newton est une méthode itérative pour trouver une racine approchée d'un polynôme. Entrez un point de départ (x0), une tolérance et un nombre maximal d'itérations.</p>
+    </div>
+    
+    <!-- Section : Calcul des racines -->
+    <form id="racinesForm">
+        <h3>Calculer les racines</h3>
+        <p>Entrez les coefficients du polynôme, séparés par des espaces, en commençant par le degré le plus élevé.</p>
+        <input type="text" name="coefficients" placeholder="Exemple : 1 -6 11 -6 (pour x^3 - 6x^2 + 11x - 6)" required>
+        <label>
+            <input type="checkbox" name="complexes"> Inclure les racines complexes
+        </label>
+        <button type="submit">Calculer</button>
+    </form>
+    <div id="racinesResult" class="result"></div>
+
+    <!-- Section : Factorisation -->
+    <form id="factorisationForm">
+        <h3>Factoriser le polynôme</h3>
+        <p>Entrez les coefficients du polynôme à factoriser.</p>
+        <input type="text" name="coefficients" placeholder="Exemple : 1 -6 11 -6" required>
+        <button type="submit">Factoriser</button>
+    </form>
+    <div id="factorisationResult" class="result"></div>
+
+    <!-- Section : Tracer le graphe -->
+    <form id="grapheForm">
+        <h3>Tracer le graphe</h3>
+        <p>Entrez les coefficients et personnalisez la plage de x et le nombre de points pour le graphe.</p>
+        <input type="text" name="coefficients" placeholder="Exemple : 1 -6 11 -6" required>
+        <input type="number" name="xmin" placeholder="Valeur minimale de x (par défaut -10)" step="any">
+        <input type="number" name="xmax" placeholder="Valeur maximale de x (par défaut 10)" step="any">
+        <input type="number" name="points" placeholder="Nombre de points pour le tracé (par défaut 500)" step="1">
+        <button type="submit">Tracer</button>
+    </form>
+    <div id="grapheResult" class="result"></div>
+
+    <!-- Section : Méthode de Newton -->
+    <form id="newtonForm">
+        <h3>Trouver une racine avec la méthode de Newton</h3>
+        <p>Entrez les coefficients, le point initial (x0), une tolérance et un nombre max d'itérations.</p>
+        <input type="text" name="coefficients" placeholder="Exemple : 1 -6 11 -6" required>
+        <input type="number" name="x0" placeholder="Valeur initiale (x0)" step="any" required>
+        <input type="number" name="tol" placeholder="Tolérance (par défaut 1e-6)" step="any">
+        <input type="number" name="max_iter" placeholder="Nombre max d'itérations (par défaut 100)" step="1">
+        <button type="submit">Trouver la racine</button>
+    </form>
+    <div id="newtonResult" class="result"></div>
+
+    <script>
+        // Fonctionnalités pour le calcul des racines
+        document.getElementById("racinesForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const coefficients = e.target.coefficients.value.split(" ").map(Number);
+            const complexes = e.target.complexes.checked;
+            const response = await fetch("/racines", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coefficients, complexes }),
+            });
+            const result = await response.json();
+            document.getElementById("racinesResult").innerText = JSON.stringify(result);
+        });
+
+        // Fonctionnalités pour la factorisation
+        document.getElementById("factorisationForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const coefficients = e.target.coefficients.value.split(" ").map(Number);
+            const response = await fetch("/factorisation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coefficients }),
+            });
+            const result = await response.json();
+            document.getElementById("factorisationResult").innerText = JSON.stringify(result);
+        });
+
+        // Fonctionnalités pour tracer le graphe
+        document.getElementById("grapheForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const coefficients = e.target.coefficients.value.split(" ").map(Number);
+            const xmin = e.target.xmin.value || -10;
+            const xmax = e.target.xmax.value || 10;
+            const points = e.target.points.value || 500;
+
+            const response = await fetch("/graphe_image", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coefficients, xmin: parseFloat(xmin), xmax: parseFloat(xmax), points: parseInt(points) }),
+            });
+            const result = await response.json();
+            if (result.image_url) {
+                document.getElementById("grapheResult").innerHTML = `<img src="${result.image_url}" alt="Graphe du polynôme">`;
+            } else {
+                document.getElementById("grapheResult").innerText = result.error || "Erreur";
+            }
+        });
+
+        // Fonctionnalités pour la méthode de Newton
+        document.getElementById("newtonForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const coefficients = e.target.coefficients.value.split(" ").map(Number);
+            const x0 = parseFloat(e.target.x0.value);
+            const tol = e.target.tol.value || 1e-6;
+            const max_iter = e.target.max_iter.value || 100;
+            const response = await fetch("/newton", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ coefficients, x0, tol: parseFloat(tol), max_iter: parseInt(max_iter) }),
+            });
+            const result = await response.json();
+            document.getElementById("newtonResult").innerText = JSON.stringify(result);
+        });
+    </script>
+</body>
+</html>
